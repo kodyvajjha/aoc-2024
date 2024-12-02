@@ -1,0 +1,8 @@
+(executable
+ (public_name day1)
+ (name day1)
+ (libraries aoclib containers))
+
+; (install
+;  (section bin)
+;  (files input.txt))
