@@ -1,5 +1,6 @@
 (executable
  (public_name day3)
+ (preprocess (pps ppx_deriving.show))
  (name day3)
  (libraries aoclib str containers))
 
