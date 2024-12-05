@@ -1,0 +1,9 @@
+(executable
+ (public_name day5)
+ (preprocess (pps ppx_deriving.show))
+ (name day5)
+ (libraries aoclib containers))
+
+; (install
+;  (section bin)
+;  (files input.txt))
