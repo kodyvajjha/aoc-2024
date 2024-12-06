@@ -80,57 +80,24 @@ module Solving = struct
   end
 
   module Part2 = struct
-    let get_id x l =
-      CCArray.find_idx (( = ) x) l
-      |> CCOption.get_exn_or (CCFormat.sprintf "no such element %d" x)
-      |> fst
-
-    (** Rearranges a badly arranged list. *)
-    let rearrange t (l : int list) : int list =
-      assert (not (Part1.in_right_order t l));
-      let all_pairs = Part1.all_pairs l in
-      (* CCFormat.printf "@.all_pairs: %a"
-           CCFormat.Dump.(list (pair int int))
-           all_pairs;
-         CCFormat.printf "@.rules: %a" CCFormat.Dump.(list (pair int int)) t.rules; *)
-      let arr = CCArray.of_list l in
-      let rearrange_single arr (x, y) =
-        if CCList.exists (fun ab -> ab = (x, y)) t.rules then
-          ()
-        else (
-          let idx = get_id x arr in
-          let idy = get_id y arr in
-
-          CCFormat.printf "@.rearranging %a! (idx,idy) : %a"
-            CCFormat.Dump.(pair int int)
-            (x, y)
-            CCFormat.Dump.(pair int int)
-            (idx, idy);
-          CCFormat.printf "@.Before: %a" CCFormat.Dump.(array int) arr;
-          arr.(idx) <- y;
-          arr.(idy) <- x;
-          CCFormat.printf "@.After: %a" CCFormat.Dump.(array int) arr
-        )
-      in
-      CCList.iter (rearrange_single arr) all_pairs;
-      CCFormat.printf "@.%a" CCFormat.Dump.(list int) (arr |> CCArray.to_list);
-      assert (Part1.in_right_order t (arr |> CCArray.to_list));
-      arr |> CCArray.to_list
+    let cmp t x y =
+      if x = y then
+        0
+      else if CCList.exists (( = ) (x, y)) t.rules then
+        -1
+      else
+        1
 
     let solve t =
-      let mid_corrects =
-        let open CCList in
-        let+ corrects =
-          (* List of all updates in the wrong order. *)
-          let res =
-            filter (fun x -> not (Part1.in_right_order t x)) t.updates
-          in
-          let+ update = res in
-          rearrange t update
+      let open CCList in
+      let sorted =
+        let+ defect =
+          filter (fun x -> not (Part1.in_right_order t x)) t.updates
         in
-        get_at_idx_exn (length corrects / 2) corrects
+        CCList.sort (cmp t) defect
       in
-      CCList.fold_left ( + ) 0 mid_corrects
+      CCList.map (fun l -> get_at_idx_exn (length l / 2) l) sorted
+      |> CCList.fold_left ( + ) 0
   end
 end
 
