@@ -88,7 +88,7 @@ module Solving = struct
     let x, y = ref start_x, ref start_y in
     let bear = ref N in
     let count = ref [ start_x, start_y ] in
-    while !x < cols || !y < rows || !x > 0 || !y > 0 do
+    while !x < cols && !y < rows && !x >= 0 && !y >= 0 do
       let next_x, next_y = step !bear (!x, !y) in
       match grid <?> (next_x, next_y) with
       | Some v ->
@@ -100,8 +100,9 @@ module Solving = struct
           y := next_y
         )
       | None ->
-        CCFormat.printf "%d" (!count |> CCList.uniq ~eq:( = ) |> CCList.length);
-        exit 0
+        count := !count @ [ !x, !y ];
+        x := next_x;
+        y := next_y
     done;
     !count |> CCList.uniq ~eq:( = ) |> CCList.length
 end
@@ -117,9 +118,20 @@ end
 (* let () =
    let grid = Parsing.grid_of_string test in
    let start_x, start_y = Solving.get_start grid in
-   CCFormat.printf "@.Part1 : %d" (Solving.simulate grid (start_x, start_y)) *)
+   let seens = Solving.simulate grid (start_x, start_y) |> CCArray.of_list in
+   CCArray.iter (fun (x, y) -> grid.(x).(y) <- 'X') seens;
+   CCFormat.printf "@.%a @.count: %d" Solving.pp_grid grid
+     (seens |> CCArray.length) *)
+(* CCFormat.printf "@.Part1 : %a"
+   CCFormat.Dump.(list (pair int int))
+   (Solving.simulate grid (start_x, start_y)) *)
+
+let () =
+  let grid = Parsing.grid_of_string test in
+  let start_x, start_y = Solving.get_start grid in
+  CCFormat.printf "@.Part1 :%d" (Solving.simulate grid (start_x, start_y))
 
 let () =
   let grid = Parsing.grid_of_filename "bin/day6/input.txt" in
   let start_x, start_y = Solving.get_start grid in
-  CCFormat.printf "@.Part1 : %d" (Solving.simulate grid (start_x, start_y))
+  CCFormat.printf "@.Part1 :%d" (Solving.simulate grid (start_x, start_y))
