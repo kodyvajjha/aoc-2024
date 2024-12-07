@@ -18,14 +18,6 @@ module Solving = struct
   let pp_grid fpf g =
     CCFormat.fprintf fpf "@.%a" CCFormat.Dump.(array (array char)) g
 
-  (* type pos = int * int *)
-
-  (* type t = {
-       start: pos;
-       obstructions: pos list;
-       _dims: int * int;
-     } *)
-
   let get_start grid =
     let rows = CCArray.length grid in
     let cols = CCArray.length grid.(0) in
@@ -58,30 +50,6 @@ module Solving = struct
     | W -> N
 
   let simulate grid (start_x, start_y) =
-    (* let open Aoclib.Infix in *)
-    let rows = CCArray.length grid in
-    let cols = CCArray.length grid.(0) in
-    let x, y = ref start_x, ref start_y in
-    let bear = ref N in
-    let count = ref [ start_x, start_y ] in
-    while !x != cols || !y != rows do
-      CCFormat.printf "@.Pos : %a  Count : %d"
-        CCFormat.Dump.(pair int int)
-        (!x, !y)
-        (!count |> CCList.uniq ~eq:( = ) |> CCList.length);
-      let next_x, next_y = step !bear (!x, !y) in
-      if grid.(next_x).(next_y) = '#' then
-        bear := rotate !bear (* Turn 90 degs. *)
-      else (
-        count := !count @ [ !x, !y ];
-        x := next_x;
-        y := next_y
-      )
-    done;
-    !count |> CCList.uniq ~eq:( = ) |> CCList.length
-
-  (* TODO: change the running vars from x,y->step bear x,y here. Very ugly. *)
-  let simulate grid (start_x, start_y) =
     let open Aoclib.Infix in
     let rows = CCArray.length grid in
     let cols = CCArray.length grid.(0) in
@@ -104,7 +72,9 @@ module Solving = struct
         x := next_x;
         y := next_y
     done;
-    !count |> CCList.uniq ~eq:( = ) |> CCList.length
+    !count |> CCList.uniq ~eq:( = )
+
+  module Part2 = struct end
 end
 
 module Parsing = struct
@@ -115,23 +85,14 @@ module Parsing = struct
   let grid_of_filename s = CCIO.(read_all (open_in s)) |> grid_of_string
 end
 
-(* let () =
-   let grid = Parsing.grid_of_string test in
-   let start_x, start_y = Solving.get_start grid in
-   let seens = Solving.simulate grid (start_x, start_y) |> CCArray.of_list in
-   CCArray.iter (fun (x, y) -> grid.(x).(y) <- 'X') seens;
-   CCFormat.printf "@.%a @.count: %d" Solving.pp_grid grid
-     (seens |> CCArray.length) *)
-(* CCFormat.printf "@.Part1 : %a"
-   CCFormat.Dump.(list (pair int int))
-   (Solving.simulate grid (start_x, start_y)) *)
-
 let () =
   let grid = Parsing.grid_of_string test in
   let start_x, start_y = Solving.get_start grid in
-  CCFormat.printf "@.Part1 :%d" (Solving.simulate grid (start_x, start_y))
+  let uniqs = Solving.simulate grid (start_x, start_y) in
+  CCFormat.printf "@.Part1 :%d" (uniqs |> CCList.length)
 
 let () =
   let grid = Parsing.grid_of_filename "bin/day6/input.txt" in
   let start_x, start_y = Solving.get_start grid in
-  CCFormat.printf "@.Part1 :%d" (Solving.simulate grid (start_x, start_y))
+  let uniqs = Solving.simulate grid (start_x, start_y) in
+  CCFormat.printf "@.Part1 :%d" (uniqs |> CCList.length)
