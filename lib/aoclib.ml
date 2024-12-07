@@ -1,21 +1,9 @@
-module type Types = sig
-  type input
-  type output
+module Infix = struct
+  let safe_get arr (x, y) =
+    if x >= 0 && y >= 0 && x < Array.length arr && y < Array.length arr.(x) then
+      Some arr.(x).(y)
+    else
+      None
 
-  val pp_input : Format.formatter -> input -> unit
-  val pp_output : Format.formatter -> output -> unit
-end
-
-module type Parsing = sig
-  type input
-
-  val input : input CCParse.t
-end
-
-module type Solving = sig
-  type input
-  type output
-
-  val part1 : input -> output
-  val part2 : input -> output
+  let ( <?> ) = safe_get
 end
