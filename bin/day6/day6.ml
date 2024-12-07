@@ -80,6 +80,7 @@ module Solving = struct
     done;
     !count |> CCList.uniq ~eq:( = ) |> CCList.length
 
+  (* TODO: change the running vars from x,y->step bear x,y here. Very ugly. *)
   let simulate grid (start_x, start_y) =
     let open Aoclib.Infix in
     let rows = CCArray.length grid in
@@ -87,7 +88,7 @@ module Solving = struct
     let x, y = ref start_x, ref start_y in
     let bear = ref N in
     let count = ref [ start_x, start_y ] in
-    while !x != cols || !y != rows do
+    while !x < cols || !y < rows || !x > 0 || !y > 0 do
       let next_x, next_y = step !bear (!x, !y) in
       match grid <?> (next_x, next_y) with
       | Some v ->
@@ -99,8 +100,7 @@ module Solving = struct
           y := next_y
         )
       | None ->
-        CCFormat.printf "@.%d"
-          ((!count |> CCList.uniq ~eq:( = ) |> CCList.length) + 1);
+        CCFormat.printf "%d" (!count |> CCList.uniq ~eq:( = ) |> CCList.length);
         exit 0
     done;
     !count |> CCList.uniq ~eq:( = ) |> CCList.length
