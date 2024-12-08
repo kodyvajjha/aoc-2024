@@ -25,40 +25,96 @@ module Solving = struct
 
   type t = equation list [@@deriving show]
 
+  module Arith = struct
+    (* This needs to be done as there is no uniform additive and multipliciative inverse! Wish we were in a field with one element...*)
+    type nint =
+      | Null
+      | Value of int
+    [@@deriving show]
+
+    let add x y =
+      match x, y with
+      | Null, _ -> y
+      | _, Null -> x
+      | Value a, Value b -> Value (a + b)
+
+    let multiply x y =
+      match x, y with
+      | Null, _ -> y
+      | _, Null -> x
+      | Value a, Value b -> Value (a * b)
+
+    let concat x y =
+      match x, y with
+      | Null, _ -> y
+      | _, Null -> x
+      | Value a, Value b ->
+        Value (int_of_string (string_of_int a ^ string_of_int b))
+
+    let ( <?+> ) = add
+
+    let ( <?*> ) = multiply
+
+    let ( <?||> ) = concat
+  end
+
   module Part1 = struct
     type tree =
       | Leaf
-      | Node of (int * tree * tree)
+      | Node of (Arith.nint * tree * tree)
     [@@deriving show]
 
     let rec tree_of_list (l : int list) =
       match l with
-      | x :: xs -> Node (x, tree_of_list xs, tree_of_list xs)
+      | x :: xs -> Node (Arith.Value x, tree_of_list xs, tree_of_list xs)
       | [] -> Leaf
 
     let is_valid equation =
       let module F = CCFormat in
-      let rec dfs s tree acc =
+      let open Arith in
+      let rec dfs tree acc =
         match tree with
-        | Leaf ->
-          if acc = equation.result then (
-            CCFormat.printf "%s@." s;
-            acc = equation.result
-          ) else
-            acc = equation.result
+        | Leaf -> acc = Value equation.result
         | Node (x, ltree, rtree) ->
-          dfs (s ^ F.sprintf " + %d" x) ltree (acc + x)
-          || dfs (s ^ F.sprintf " * %d" x) rtree (acc * x)
+          dfs ltree (acc <?+> x) || dfs rtree (acc <?*> x)
       in
-      (* This needs to be done as there is no uniform additive and multipliciative inverse! Wish we were in a field with one element...*)
-      dfs
-        (CCFormat.sprintf "%d = " equation.result)
-        (tree_of_list equation.operands)
-        1
-      && dfs
-           (CCFormat.sprintf "%d = " equation.result)
-           (tree_of_list equation.operands)
-           0
+      dfs (tree_of_list equation.operands) Null
+
+    let solve t =
+      (* CCList.iter
+         (fun eq ->
+           CCFormat.printf "@.equation : %a is_valid : %s@." pp_equation eq
+             (string_of_bool (is_valid eq)))
+         t; *)
+      CCList.(
+        let+ l = filter is_valid t in
+        l.result)
+      |> CCList.fold_left ( + ) 0
+  end
+
+  module Part2 = struct
+    type tree =
+      | Leaf
+      | Node of (Arith.nint * tree * tree * tree)
+
+    let rec tree_of_list (l : int list) =
+      match l with
+      | x :: xs ->
+        Node (Arith.Value x, tree_of_list xs, tree_of_list xs, tree_of_list xs)
+      | [] -> Leaf
+
+    let is_valid equation =
+      let module F = CCFormat in
+      let open Arith in
+      let rec dfs tree acc =
+        match tree with
+        | Leaf -> acc = Value equation.result
+        | Node (x, ltree, mtree, rtree) ->
+          dfs ltree (acc <?+> x)
+          || dfs mtree (acc <?||> x)
+          || dfs rtree (acc <?*> x)
+      in
+      dfs (tree_of_list equation.operands) Null
 
     let solve t =
       (* CCList.iter
@@ -88,7 +144,7 @@ end
 let () =
   let res =
     let open CCResult in
-    CCParse.parse_string Parsing.input test2 >|= fun res ->
+    CCParse.parse_string Parsing.input test >|= fun res ->
     (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
     Solving.Part1.solve res
   in
@@ -103,10 +159,22 @@ let () =
   in
   CCFormat.printf "@.Part 1: %a" (CCResult.pp CCFormat.int) res
 
-(* let () =
-   let res =
-     let open CCResult in
-     CCParse.parse_string Parsing.input test >|= fun res -> res
-   in
-   CCFormat.printf "Equation : %a" (CCResult.pp Solving.pp) res *)
+let () =
+  let res =
+    let open CCResult in
+    CCParse.parse_string Parsing.input test >|= fun res ->
+    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
+    Solving.Part2.solve res
+  in
+  CCFormat.printf "@.Part 2: %a" (CCResult.pp CCFormat.int) res
+
+let () =
+  let res =
+    let open CCResult in
+    CCParse.parse_file Parsing.input "bin/day7/input.txt" >|= fun res ->
+    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
+    Solving.Part2.solve res
+  in
+  CCFormat.printf "@.Part 2: %a" (CCResult.pp CCFormat.int) res
+
 (* 1620690235709 *)
