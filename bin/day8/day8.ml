@@ -14,8 +14,20 @@ let test =
 ............
 ............|}
 
+let test2 =
+  {|..........
+..........
+..........
+....a.....
+..........
+.....a....
+..........
+..........
+..........
+..........|}
+
 module Solving = struct
-  type grid = char array array
+  type grid = char array array [@@deriving show]
 
   type antennae = {
     freq: char;
@@ -47,7 +59,41 @@ module Solving = struct
     done;
     CCList.map (get_antennae grid) !freqs |> CCList.uniq ~eq:( = )
 
-  let antinodes (x1, y1) (x2, y2) = ()
+  let antinodes (x1, y1) (x2, y2) =
+    let unit_x, unit_y = x2 - x1, y2 - y1 in
+    let antinode1 = x1 - unit_x, y1 - unit_y in
+    let antinode2 = x2 + unit_x, y2 + unit_y in
+    antinode1, antinode2
+
+  let is_safe arr (x, y) =
+    x >= 0 && y >= 0 && x < Array.length arr && y < Array.length arr.(x)
+
+  let solve grid (antennae : t) =
+    let pos =
+      let open CCList in
+      CCFormat.printf "antennae : %a@."
+        CCFormat.Dump.(list pp_antennae)
+        antennae;
+      let* antenna = antennae in
+      let* pos1 = antenna.pos in
+      let* pos2 = CCList.filter (fun x -> x != pos1) antenna.pos in
+      if pos1 = pos2 then
+        []
+      else (
+        let an1, an2 = antinodes pos1 pos2 in
+
+        if is_safe grid an1 && is_safe grid an2 then
+          [ an1; an2 ]
+        else if is_safe grid an1 then
+          [ an1 ]
+        else if is_safe grid an2 then
+          [ an2 ]
+        else
+          []
+      )
+    in
+
+    pos |> CCList.uniq ~eq:( = )
 end
 
 module Parsing = struct
@@ -56,12 +102,31 @@ module Parsing = struct
   let grid_of_string s : Solving.grid = Aoclib.Parsing.grid_of_string s
 end
 
+(* let () =
+   let grid = Parsing.grid_of_string test2 in
+   let antenna = CCList.hd (Solving.mk grid) in
+   let antinode_x, antinode_y = Solving.antinodes (3, 4) (5, 5) in
+   grid.(fst antinode_x).(snd antinode_x) <- '#';
+   grid.(fst antinode_y).(snd antinode_y) <- '#';
+   CCFormat.printf "@.%a" Solving.pp_antennae antenna;
+   CCFormat.printf "@.%a" Solving.pp_grid grid *)
+
 let () =
   let grid = Parsing.grid_of_string test in
   let antennae = Solving.mk grid in
-  CCFormat.printf "@.%a" Solving.pp antennae
+  let antinode_positions = Solving.solve grid antennae in
+  CCFormat.printf "@.%a" Solving.pp_grid grid;
+  CCList.iter (fun (x, y) -> grid.(x).(y) <- '#') antinode_positions;
+  CCFormat.printf "@.@.%a" Solving.pp_grid grid
+
+let () =
+  let grid = Parsing.grid_of_string test in
+  let antennae = Solving.mk grid in
+  let ans = Solving.solve grid antennae in
+  CCFormat.printf "@.Part1 : %d" (ans |> CCList.length)
 
 let () =
   let grid = Parsing.grid_of_filename "bin/day8/input.txt" in
   let antennae = Solving.mk grid in
-  CCFormat.printf "@.%a" Solving.pp antennae
+  let ans = Solving.solve grid antennae in
+  CCFormat.printf "@.Part1 : %d" (ans |> CCList.length)
