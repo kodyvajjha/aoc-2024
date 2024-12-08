@@ -70,7 +70,6 @@ module Solving = struct
       | [] -> Leaf
 
     let is_valid equation =
-      let module F = CCFormat in
       let open Arith in
       let rec dfs tree acc =
         match tree with
@@ -81,11 +80,6 @@ module Solving = struct
       dfs (tree_of_list equation.operands) Null
 
     let solve t =
-      (* CCList.iter
-         (fun eq ->
-           CCFormat.printf "@.equation : %a is_valid : %s@." pp_equation eq
-             (string_of_bool (is_valid eq)))
-         t; *)
       CCList.(
         let+ l = filter is_valid t in
         l.result)
@@ -117,11 +111,6 @@ module Solving = struct
       dfs (tree_of_list equation.operands) Null
 
     let solve t =
-      (* CCList.iter
-         (fun eq ->
-           CCFormat.printf "@.equation : %a is_valid : %s@." pp_equation eq
-             (string_of_bool (is_valid eq)))
-         t; *)
       CCList.(
         let+ l = filter is_valid t in
         l.result)
@@ -145,7 +134,6 @@ let () =
   let res =
     let open CCResult in
     CCParse.parse_string Parsing.input test >|= fun res ->
-    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
     Solving.Part1.solve res
   in
   CCFormat.printf "@.Part 1: %a" (CCResult.pp CCFormat.int) res
@@ -154,7 +142,6 @@ let () =
   let res =
     let open CCResult in
     CCParse.parse_file Parsing.input "bin/day7/input.txt" >|= fun res ->
-    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
     Solving.Part1.solve res
   in
   CCFormat.printf "@.Part 1: %a" (CCResult.pp CCFormat.int) res
@@ -163,7 +150,6 @@ let () =
   let res =
     let open CCResult in
     CCParse.parse_string Parsing.input test >|= fun res ->
-    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
     Solving.Part2.solve res
   in
   CCFormat.printf "@.Part 2: %a" (CCResult.pp CCFormat.int) res
@@ -172,9 +158,6 @@ let () =
   let res =
     let open CCResult in
     CCParse.parse_file Parsing.input "bin/day7/input.txt" >|= fun res ->
-    (* CCFormat.printf "@.%a" CCFormat.(list Solving.pp_equation) res; *)
     Solving.Part2.solve res
   in
   CCFormat.printf "@.Part 2: %a" (CCResult.pp CCFormat.int) res
-
-(* 1620690235709 *)
