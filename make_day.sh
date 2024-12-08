@@ -6,7 +6,7 @@ touch $1.ml
 touch dune 
 touch input.txt 
 
-echo "let test = {||} module Solving = struct end module Printing = struct end let () = ()" > $1.ml
+echo "[@@@warning \"-32\"]let test = {||} module Solving = struct end module Parsing = struct end let () = ()" > $1.ml
 
 echo "(executable
  (public_name $1)

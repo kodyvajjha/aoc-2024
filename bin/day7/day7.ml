@@ -130,6 +130,10 @@ module Parsing = struct
   let input = many line
 end
 
+(*Part 1: ok(3749)
+  Part 1: ok(1620690235709)
+  Part 2: ok(11387)
+  Part 2: ok(145397611075341) *)
 let () =
   let res =
     let open CCResult in
